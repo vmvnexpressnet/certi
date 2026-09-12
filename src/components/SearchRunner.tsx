@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, User, Award, CheckCircle2, ChevronRight } from 'lucide-react';
 import { Runner } from '../types';
+import { DEMO_RUNNERS, DEMO_PHOTOS } from '../data/mockRunners';
 
 interface SearchRunnerProps {
   runners: Runner[];
@@ -29,13 +30,15 @@ export const SearchRunner: React.FC<SearchRunnerProps> = ({
       .toLowerCase();
   };
 
-  // Filter suggestions based on query
+  // Filter suggestions based on query from both demo runners and lookup datasource
   const trimmed = query.trim().toLowerCase();
   const normalizedQuery = removeDiacritics(trimmed);
 
+  const searchPool = [...DEMO_RUNNERS, ...runners.filter((r) => !DEMO_RUNNERS.some((d) => d.bib === r.bib))];
+
   const suggestions = trimmed.length === 0
     ? []
-    : runners.filter((r) => {
+    : searchPool.filter((r) => {
         const matchBib = r.bib.toLowerCase().includes(trimmed);
         const matchName = r.name.toLowerCase().includes(trimmed) || removeDiacritics(r.name).includes(normalizedQuery);
         return matchBib || matchName;
@@ -57,7 +60,10 @@ export const SearchRunner: React.FC<SearchRunnerProps> = ({
   }, []);
 
   const handleSelect = (runner: Runner) => {
-    onSelectRunner(runner);
+    const runnerWithPhoto = DEMO_PHOTOS[runner.bib]
+      ? { ...runner, photoUrl: DEMO_PHOTOS[runner.bib] }
+      : runner;
+    onSelectRunner(runnerWithPhoto);
     setQuery(`${runner.name} - ${runner.bib}`);
     setIsOpen(false);
   };
@@ -198,17 +204,18 @@ export const SearchRunner: React.FC<SearchRunnerProps> = ({
         </div>
       )}
 
-      {/* Quick sample chips */}
-      <div className="mt-2.5 flex items-center flex-wrap gap-1.5 text-xs">
+      {/* Quick sample chips - Cố định đúng 3 VĐV Mẫu (Data ví dụ, độc lập với dữ liệu tra cứu) */}
+      <div className="mt-2.5 flex items-center flex-wrap gap-1.5 text-xs" id="demo-runners-section">
         <span className="text-stone-400 font-medium mr-1 text-[11px]">VĐV mẫu:</span>
-        {runners.slice(0, 5).map((r) => {
+        {DEMO_RUNNERS.map((r) => {
           const isCurrent = selectedRunner?.bib === r.bib;
           return (
             <button
               key={r.bib}
               type="button"
+              id={`demo-runner-btn-${r.bib}`}
               onClick={() => handleSelect(r)}
-              className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                 isCurrent
                   ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
                   : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400 hover:bg-stone-50'

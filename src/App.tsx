@@ -5,7 +5,7 @@ import { CertificateCanvas } from './components/CertificateCanvas';
 import { RunnerDetailsCard } from './components/RunnerDetailsCard';
 import { GoogleSheetModal } from './components/GoogleSheetModal';
 import { Runner, CertificateConfig, DataSourceSettings } from './types';
-import { INITIAL_RUNNERS } from './data/mockRunners';
+import { INITIAL_RUNNERS, DEMO_RUNNERS, DEMO_PHOTOS } from './data/mockRunners';
 import {
   getSavedDataSourceSettings,
   saveDataSourceSettings,
@@ -123,13 +123,16 @@ export default function App() {
     }
     if (res.runners && res.runners.length > 0) {
       setRunners(res.runners);
-      // If current selected runner is in new list, keep or update it
-      const found = res.runners.find((r) => r.bib === selectedRunner?.bib);
-      if (found) {
-        setSelectedRunner(found);
-      } else {
-        setSelectedRunner(res.runners[0]);
-      }
+      // Giữ nguyên vận động viên đang chọn nếu là 1 trong 3 VĐV mẫu hoặc có trong danh sách mới
+      setSelectedRunner((current) => {
+        if (!current) return res.runners[0];
+        const isDemo = DEMO_RUNNERS.find((d) => d.bib === current.bib);
+        if (isDemo) {
+          return { ...isDemo, photoUrl: DEMO_PHOTOS[isDemo.bib] };
+        }
+        const found = res.runners.find((r) => r.bib === current.bib);
+        return found || current;
+      });
     }
     if (res.error) {
       setSyncError(res.error);
@@ -215,7 +218,12 @@ export default function App() {
           <SearchRunner
             runners={runners}
             selectedRunner={selectedRunner}
-            onSelectRunner={(runner) => setSelectedRunner(runner)}
+            onSelectRunner={(runner) => {
+              const withPhoto = DEMO_PHOTOS[runner.bib]
+                ? { ...runner, photoUrl: DEMO_PHOTOS[runner.bib] }
+                : runner;
+              setSelectedRunner(withPhoto);
+            }}
           />
         </section>
 

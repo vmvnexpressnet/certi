@@ -18,9 +18,12 @@ import {
   Contrast,
   Flame,
   Palette,
+  TrendingUp,
+  Activity,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Runner, CertificateConfig } from '../types';
+import { Runner, CertificateConfig, PersonalPhotoOverlayConfig } from '../types';
+import { DEMO_PHOTOS } from '../data/mockRunners';
 import { drawCertificate, drawCollageFrame, PhotoFilters } from '../utils/canvasDrawer';
 import {
   saveBackgroundImage,
@@ -31,9 +34,8 @@ import {
 } from '../utils/imageStorage';
 import generatedBgUrl from '../assets/images/vm_quynhon_certificate_bg_1789117795867.jpg';
 
-// High-quality sample marathon runner photo for instant testing
-const SAMPLE_RUNNER_PHOTO =
-  'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=1600&auto=format&fit=crop';
+// Default sample runner photo (Phùng Hữu Thanh: /1.jpg)
+const SAMPLE_RUNNER_PHOTO = '/1.jpg';
 
 // Neutral default filters: NO filters applied automatically
 const DEFAULT_PHOTO_FILTERS: PhotoFilters = {
@@ -73,6 +75,14 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
   // Manual Photo Filter & Smoothing State (Default: 100% neutral, user can adjust manually)
   const [photoFilters, setPhotoFilters] = useState<PhotoFilters>(DEFAULT_PHOTO_FILTERS);
   const [showFilterPanel, setShowFilterPanel] = useState<boolean>(false);
+
+  // Personal Photo Telemetry & CP Chart Overlay State
+  const [photoOverlayConfig, setPhotoOverlayConfig] = useState<PersonalPhotoOverlayConfig>({
+    showOverlay: true,
+    showChart: true,
+    position: 'bottom',
+    theme: 'dark',
+  });
 
   // Check if any filter is non-default
   const isFilterActive =
@@ -144,42 +154,59 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
   // Track user custom uploaded photo separately so changing runners switches to the runner's photo if present
   const [userUploadedPhoto, setUserUploadedPhoto] = useState<string | null>(null);
 
-  // Load saved personal photo from IndexedDB on mount
+  // Load photo on mount
   useEffect(() => {
     async function loadPersonalPhoto() {
+      // Nếu là 1 trong 3 VĐV Mẫu (90110, 61137, 52535), luôn nạp đúng ảnh mẫu của họ
+      if (DEMO_PHOTOS[runner.bib]) {
+        setPersonalPhotoUrl(DEMO_PHOTOS[runner.bib]);
+        return;
+      }
+      if (runner.photoUrl) {
+        setPersonalPhotoUrl(runner.photoUrl);
+        return;
+      }
       try {
         const savedPhoto = await getSavedPersonalPhoto();
         if (savedPhoto) {
           setUserUploadedPhoto(savedPhoto);
           setPersonalPhotoUrl(savedPhoto);
-        } else if (runner.photoUrl) {
-          setPersonalPhotoUrl(runner.photoUrl);
         } else {
-          // Preload sample runner photo so user has instant visual preview
-          setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
+          setPersonalPhotoUrl(null);
         }
       } catch {
-        if (runner.photoUrl) {
-          setPersonalPhotoUrl(runner.photoUrl);
-        } else {
-          setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
-        }
+        setPersonalPhotoUrl(null);
       }
     }
     loadPersonalPhoto();
   }, []);
 
-  // When selected runner changes, switch photo to runner's assigned photo if user didn't upload a custom override
+  // When selected runner changes, sync photo precisely
   useEffect(() => {
-    if (!userUploadedPhoto) {
-      if (runner.photoUrl) {
-        setPersonalPhotoUrl(runner.photoUrl);
-        setPhotoOffsetX(0);
-        setPhotoOffsetY(0);
-        setPhotoZoom(1.0);
-      } else {
-        setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
-      }
+    // 1. Nếu là 1 trong 3 VĐV Mẫu cố định: luôn đặt ảnh tương ứng của người đó
+    if (DEMO_PHOTOS[runner.bib]) {
+      setPersonalPhotoUrl(DEMO_PHOTOS[runner.bib]);
+      setPhotoOffsetX(0);
+      setPhotoOffsetY(0);
+      setPhotoZoom(1.0);
+      return;
+    }
+
+    // 2. Nếu là runner từ nguồn tra cứu có photoUrl riêng
+    if (runner.photoUrl) {
+      setPersonalPhotoUrl(runner.photoUrl);
+      setPhotoOffsetX(0);
+      setPhotoOffsetY(0);
+      setPhotoZoom(1.0);
+      return;
+    }
+
+    // 3. Nếu là runner từ nguồn tra cứu không có ảnh sẵn:
+    // Dùng ảnh người dùng tự upload (nếu có), nếu chưa upload thì null
+    if (userUploadedPhoto) {
+      setPersonalPhotoUrl(userUploadedPhoto);
+    } else {
+      setPersonalPhotoUrl(null);
     }
   }, [runner.bib, runner.photoUrl, userUploadedPhoto]);
 
@@ -287,6 +314,7 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
         photoOffsetX,
         photoOffsetY,
         photoFilters,
+        photoOverlayConfig,
       });
     }
   }, [
@@ -298,6 +326,7 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
     photoOffsetX,
     photoOffsetY,
     photoFilters,
+    photoOverlayConfig,
     imagesReady,
   ]);
 
@@ -516,7 +545,8 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
   const handleRemovePhoto = async () => {
     await removeSavedPersonalPhoto();
     setUserUploadedPhoto(null);
-    setPersonalPhotoUrl(runner.photoUrl || null);
+    const fallback = DEMO_PHOTOS[runner.bib] || runner.photoUrl || null;
+    setPersonalPhotoUrl(fallback);
     setPhotoOffsetX(0);
     setPhotoOffsetY(0);
     setPhotoZoom(1.0);
@@ -526,7 +556,8 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
   // Set sample runner photo
   const handleUseSamplePhoto = () => {
     setUserUploadedPhoto(null);
-    setPersonalPhotoUrl(runner.photoUrl || SAMPLE_RUNNER_PHOTO);
+    const sample = DEMO_PHOTOS[runner.bib] || runner.photoUrl || SAMPLE_RUNNER_PHOTO;
+    setPersonalPhotoUrl(sample);
     setPhotoOffsetX(0);
     setPhotoOffsetY(0);
     setPhotoZoom(1.0);
@@ -577,6 +608,7 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
           photoOffsetX,
           photoOffsetY,
           photoFilters,
+          photoOverlayConfig,
         });
 
         const dataUrl = exportCanvas.toDataURL('image/png', 1.0);
@@ -784,6 +816,55 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
               >
                 Certi Trái • Ảnh Phải
               </button>
+            </div>
+
+            {/* Checkpoint Stats & Chart Overlay Control on Personal Photo */}
+            <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+              <button
+                type="button"
+                id="toggle-photo-overlay-btn"
+                onClick={() => setPhotoOverlayConfig((prev) => ({ ...prev, showOverlay: !prev.showOverlay }))}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  photoOverlayConfig.showOverlay
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900'
+                }`}
+                title="Bật/Tắt hiển thị thông số CP và Biểu đồ Pace trên ảnh cá nhân"
+              >
+                <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
+                <span>Thông số & Chart CP</span>
+              </button>
+              {photoOverlayConfig.showOverlay && (
+                <>
+                  <button
+                    type="button"
+                    id="toggle-photo-chart-btn"
+                    onClick={() => setPhotoOverlayConfig((prev) => ({ ...prev, showChart: !prev.showChart }))}
+                    className={`px-2 py-1 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                      photoOverlayConfig.showChart
+                        ? 'bg-white text-stone-900 shadow-xs font-semibold'
+                        : 'text-stone-500 hover:text-stone-800'
+                    }`}
+                    title="Đổi giữa hiện đầy đủ biểu đồ hoặc bảng thông số gọn"
+                  >
+                    {photoOverlayConfig.showChart ? 'Đầy đủ Chart' : 'Tối giản'}
+                  </button>
+                  <button
+                    type="button"
+                    id="toggle-overlay-pos-btn"
+                    onClick={() =>
+                      setPhotoOverlayConfig((prev) => ({
+                        ...prev,
+                        position: prev.position === 'bottom' ? 'top' : 'bottom',
+                      }))
+                    }
+                    className="px-2 py-1 rounded text-[10px] font-medium text-stone-600 hover:text-stone-900 hover:bg-white transition-colors cursor-pointer"
+                    title="Đổi vị trí hiển thị bảng thông số (Dưới hoặc Trên)"
+                  >
+                    {photoOverlayConfig.position === 'bottom' ? 'Vị trí: Dưới' : 'Vị trí: Trên'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

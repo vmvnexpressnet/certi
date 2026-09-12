@@ -1,4 +1,5 @@
-import { Runner, CertificateConfig } from '../types';
+import { Runner, CertificateConfig, PersonalPhotoOverlayConfig } from '../types';
+import { drawPhotoTelemetryHUD } from './photoTelemetryDrawer';
 
 export interface DrawOptions {
   canvas: HTMLCanvasElement;
@@ -497,6 +498,7 @@ export interface DrawCollageOptions {
   photoFilters?: PhotoFilters; // user-adjusted photo filters
   customImageObj?: HTMLImageElement | null;
   generatedImageObj?: HTMLImageElement | null;
+  photoOverlayConfig?: PersonalPhotoOverlayConfig;
 }
 
 /**
@@ -517,6 +519,7 @@ export const drawCollageFrame = async (options: DrawCollageOptions): Promise<voi
     photoFilters,
     customImageObj,
     generatedImageObj,
+    photoOverlayConfig,
   } = options;
 
   const ctx = canvas.getContext('2d');
@@ -666,6 +669,16 @@ export const drawCollageFrame = async (options: DrawCollageOptions): Promise<voi
     ctx.font = `500 ${Math.round(totalH * 0.013)}px 'Montserrat', sans-serif`;
     ctx.fillText('Có thể kéo chuột trực tiếp trên ảnh để căn chỉnh & dùng thanh trượt để phóng to', photoX + photoW / 2, totalH * 0.595);
   }
+
+  // 3. Draw Telemetry HUD & CP Segments Pace Chart onto the personal photo
+  drawPhotoTelemetryHUD({
+    ctx,
+    photoX,
+    photoW,
+    photoH: totalH,
+    runner,
+    overlayConfig: photoOverlayConfig,
+  });
 
   ctx.restore();
 };

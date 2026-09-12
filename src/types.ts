@@ -13,6 +13,24 @@ export interface Runner {
   pace?: string;
   date?: string; // default '13/09/2026'
   photoUrl?: string; // Optional runner photo URL
+
+  // Checkpoint parameters & paces requested
+  startTime?: string;
+  cp1?: string;
+  cp1Pace?: string;
+  cp2?: string;
+  cp2Pace?: string;
+  cp3?: string;
+  cp3Pace?: string;
+  avgPace?: string;
+  finishPace?: string;
+}
+
+export interface PersonalPhotoOverlayConfig {
+  showOverlay: boolean; // default true
+  showChart: boolean;   // default true
+  position: 'bottom' | 'top'; // default 'bottom'
+  theme: 'dark' | 'glass' | 'neon'; // default 'dark'
 }
 
 export interface CertificateConfig {

@@ -1,5 +1,6 @@
 import { Runner, DataSourceSettings } from '../types';
 import { INITIAL_RUNNERS } from '../data/mockRunners';
+import { getRunnerSplitData } from '../utils/runnerSplits';
 
 const SETTINGS_KEY = 'vm_quynhon_datasource_settings';
 const RUNNERS_CACHE_KEY = 'vm_quynhon_runners_cache';
@@ -55,6 +56,14 @@ export const parseCSV = (csvText: string): Runner[] => {
   const gunIdx = findIdx(['gun'], 8);
   const chipIdx = findIdx(['chip', 'net'], 9);
   const photoIdx = findIdx(['ảnh', 'photo', 'image', 'avatar'], 10);
+  const startIdx = findIdx(['start', 'xuất phát', 'bắt đầu'], -1);
+  const cp1Idx = findIdx(['cp1', 'cp 1', 'checkpoint 1'], -1);
+  const cp1PaceIdx = findIdx(['cp1.pace', 'cp1 pace', 'pace cp1', 'cp1_pace'], -1);
+  const cp2Idx = findIdx(['cp2', 'cp 2', 'checkpoint 2'], -1);
+  const cp2PaceIdx = findIdx(['cp2.pace', 'cp2 pace', 'pace cp2', 'cp2_pace'], -1);
+  const cp3Idx = findIdx(['cp3', 'cp 3', 'checkpoint 3'], -1);
+  const cp3PaceIdx = findIdx(['cp3.pace', 'cp3 pace', 'pace cp3', 'cp3_pace'], -1);
+  const avgPaceIdx = findIdx(['average pace', 'avg pace', 'pace tb', 'pace'], -1);
 
   const runners: Runner[] = [];
 
@@ -72,8 +81,10 @@ export const parseCSV = (csvText: string): Runner[] => {
     const gender = gUpper.startsWith('F') || gUpper.includes('NỮ') ? 'F' : 'M';
 
     const distance = cols[distIdx] || 'Half Marathon';
+    const gunTime = cols[gunIdx] || '--:--:--';
+    const chipTime = cols[chipIdx] || '--:--:--';
 
-    runners.push({
+    const baseRunner: Runner = {
       bib,
       name,
       gender,
@@ -83,11 +94,33 @@ export const parseCSV = (csvText: string): Runner[] => {
       genderRank: cols[genderRankIdx] || '-',
       ag: cols[agIdx] || '-',
       ageGroupRank: cols[agRankIdx] || '-',
-      gunTime: cols[gunIdx] || '--:--:--',
-      chipTime: cols[chipIdx] || '--:--:--',
+      gunTime,
+      chipTime,
       date: '13/09/2026',
       photoUrl: cols[photoIdx] || undefined,
-    });
+      startTime: startIdx !== -1 ? cols[startIdx] : undefined,
+      cp1: cp1Idx !== -1 ? cols[cp1Idx] : undefined,
+      cp1Pace: cp1PaceIdx !== -1 ? cols[cp1PaceIdx] : undefined,
+      cp2: cp2Idx !== -1 ? cols[cp2Idx] : undefined,
+      cp2Pace: cp2PaceIdx !== -1 ? cols[cp2PaceIdx] : undefined,
+      cp3: cp3Idx !== -1 ? cols[cp3Idx] : undefined,
+      cp3Pace: cp3PaceIdx !== -1 ? cols[cp3PaceIdx] : undefined,
+      avgPace: avgPaceIdx !== -1 ? cols[avgPaceIdx] : undefined,
+    };
+
+    // Calculate CP splits if missing
+    const splits = getRunnerSplitData(baseRunner);
+    baseRunner.startTime = baseRunner.startTime || splits.startTime;
+    baseRunner.cp1 = baseRunner.cp1 || splits.cp1;
+    baseRunner.cp1Pace = baseRunner.cp1Pace || splits.cp1Pace;
+    baseRunner.cp2 = baseRunner.cp2 || splits.cp2;
+    baseRunner.cp2Pace = baseRunner.cp2Pace || splits.cp2Pace;
+    baseRunner.cp3 = baseRunner.cp3 || splits.cp3;
+    baseRunner.cp3Pace = baseRunner.cp3Pace || splits.cp3Pace;
+    baseRunner.avgPace = baseRunner.avgPace || splits.avgPace;
+    baseRunner.finishPace = baseRunner.finishPace || splits.finishPace;
+
+    runners.push(baseRunner);
   }
 
   return runners;
@@ -191,10 +224,11 @@ export const fetchRunnersFromSource = async (
     };
 
     // Format & normalize fields
-    const formatted: Runner[] = list.map((r, idx) => {
+    const formatted: Runner[] = list.map((r: any, idx) => {
       const bibStr = String(r.bib || idx + 1000).trim();
       const distClean = normalizeDistance(String(r.distance || ''), bibStr);
-      return {
+
+      const rawRunner: Runner = {
         bib: bibStr,
         name: String(r.name || 'Vận động viên').trim(),
         gender: String(r.gender || 'M').toUpperCase().includes('F') ? 'F' : 'M',
@@ -207,8 +241,31 @@ export const fetchRunnersFromSource = async (
         gunTime: String(r.gunTime || '--:--:--').trim(),
         chipTime: String(r.chipTime || '--:--:--').trim(),
         date: r.date || '13/09/2026',
-        photoUrl: r.photoUrl || (r as any).photo || (r as any).image || undefined,
+        photoUrl: r.photoUrl || r.photo || r.image || undefined,
+        startTime: r.startTime || r.start || r['xuất phát'] || r['bắt đầu'] || undefined,
+        cp1: r.cp1 || r['cp 1'] || r.checkpoint1 || undefined,
+        cp1Pace: r.cp1Pace || r['cp1.pace'] || r['cp1 pace'] || r['pace cp1'] || r.cp1_pace || undefined,
+        cp2: r.cp2 || r['cp 2'] || r.checkpoint2 || undefined,
+        cp2Pace: r.cp2Pace || r['cp2.pace'] || r['cp2 pace'] || r['pace cp2'] || r.cp2_pace || undefined,
+        cp3: r.cp3 || r['cp 3'] || r.checkpoint3 || undefined,
+        cp3Pace: r.cp3Pace || r['cp3.pace'] || r['cp3 pace'] || r['pace cp3'] || r.cp3_pace || undefined,
+        avgPace: r.avgPace || r.averagePace || r['avg pace'] || r['average pace'] || r['average.pace'] || r.pace || undefined,
+        finishPace: r.finishPace || r['finish pace'] || r['pace finish'] || undefined,
       };
+
+      // Fill in CP calculations if any were missing
+      const splits = getRunnerSplitData(rawRunner);
+      rawRunner.startTime = rawRunner.startTime || splits.startTime;
+      rawRunner.cp1 = rawRunner.cp1 || splits.cp1;
+      rawRunner.cp1Pace = rawRunner.cp1Pace || splits.cp1Pace;
+      rawRunner.cp2 = rawRunner.cp2 || splits.cp2;
+      rawRunner.cp2Pace = rawRunner.cp2Pace || splits.cp2Pace;
+      rawRunner.cp3 = rawRunner.cp3 || splits.cp3;
+      rawRunner.cp3Pace = rawRunner.cp3Pace || splits.cp3Pace;
+      rawRunner.avgPace = rawRunner.avgPace || splits.avgPace;
+      rawRunner.finishPace = rawRunner.finishPace || splits.finishPace;
+
+      return rawRunner;
     });
 
     localStorage.setItem(RUNNERS_CACHE_KEY, JSON.stringify(formatted));

@@ -110,6 +110,14 @@ function doGet(e) {
     var colAgeGroupRank = findCol(["age group rank", "hạng lứa tuổi", "hạng nhóm tuổi"], 7);
     var colGunTime = findCol(["guntime", "gun time", "thời gian gun"], 8);
     var colChipTime = findCol(["chiptime", "chip time", "thời gian chip", "net time"], 9);
+    var colStart = findCol(["start", "xuất phát", "bắt đầu", "giờ start"], -1);
+    var colCP1 = findCol(["cp1", "cp 1", "checkpoint 1"], -1);
+    var colCP1Pace = findCol(["cp1.pace", "cp1 pace", "pace cp1", "cp1_pace", "pace 1"], -1);
+    var colCP2 = findCol(["cp2", "cp 2", "checkpoint 2"], -1);
+    var colCP2Pace = findCol(["cp2.pace", "cp2 pace", "pace cp2", "cp2_pace", "pace 2"], -1);
+    var colCP3 = findCol(["cp3", "cp 3", "checkpoint 3"], -1);
+    var colCP3Pace = findCol(["cp3.pace", "cp3 pace", "pace cp3", "cp3_pace", "pace 3"], -1);
+    var colAvgPace = findCol(["average pace", "avg pace", "pace tb", "pace trung bình", "pace", "averagepace"], -1);
 
     var runners = [];
     var searchParam = e && e.parameter && e.parameter.search ? String(e.parameter.search).toLowerCase().trim() : "";
@@ -139,7 +147,15 @@ function doGet(e) {
         ageGroupRank: row[colAgeGroupRank] !== undefined && row[colAgeGroupRank] !== "" ? row[colAgeGroupRank] : "-",
         gunTime: formatTime(row[colGunTime]),
         chipTime: formatTime(row[colChipTime]),
-        date: "13/09/2026"
+        date: "13/09/2026",
+        startTime: colStart !== -1 && row[colStart] ? formatTime(row[colStart]) : "",
+        cp1: colCP1 !== -1 && row[colCP1] ? formatTime(row[colCP1]) : "",
+        cp1Pace: colCP1Pace !== -1 && row[colCP1Pace] ? String(row[colCP1Pace]).trim() : "",
+        cp2: colCP2 !== -1 && row[colCP2] ? formatTime(row[colCP2]) : "",
+        cp2Pace: colCP2Pace !== -1 && row[colCP2Pace] ? String(row[colCP2Pace]).trim() : "",
+        cp3: colCP3 !== -1 && row[colCP3] ? formatTime(row[colCP3]) : "",
+        cp3Pace: colCP3Pace !== -1 && row[colCP3Pace] ? String(row[colCP3Pace]).trim() : "",
+        avgPace: colAvgPace !== -1 && row[colAvgPace] ? String(row[colAvgPace]).trim() : ""
       };
 
       if (bibParam) {
@@ -186,11 +202,9 @@ function jsonResponse(payload) {
 }
 `;
 
-export const SAMPLE_SHEET_CSV_TEMPLATE = `BIB,Name,Gender,Distance,OverallRank,GenderRank,AG,AgeGroupRank,GunTime,ChipTime
-88881,Bùi Minh Đức,M,Half Marathon,128,94,30-39,32,01:45:20,01:44:12
-42195,Nguyễn Văn Long,M,Full Marathon,15,14,30-39,5,02:48:35,02:48:20
-42308,Trần Thị Thảo,F,Full Marathon,45,4,20-29,2,03:15:10,03:14:48
-21055,Lê Hoàng Nam,M,Half Marathon,56,48,40-49,12,01:38:15,01:37:50
-21190,Phạm Minh Trang,F,Half Marathon,89,11,30-39,4,01:52:04,01:51:22
-10234,Võ Quốc Huy,M,10KM,24,20,20-29,8,00:44:18,00:44:02
-05112,Đặng Thùy Dương,F,5KM,18,6,Under 20,2,00:23:45,00:23:30`;
+export const SAMPLE_SHEET_CSV_TEMPLATE = `BIB,Name,Gender,Distance,OverallRank,GenderRank,AG,AgeGroupRank,GunTime,ChipTime,Start,CP1,CP1.Pace,CP2,CP2.Pace,CP3,CP3.Pace,Average Pace
+90110,Phùng Hữu Thanh,M,Full Marathon,292,238,M40-49,100,6:25:47,6:25:24,03:00:00,01:26:40,8:40 /km,03:06:15,8:58 /km,04:32:50,9:44 /km,9:08 /km
+88881,Bùi Minh Đức,M,Half Marathon,128,94,M30-39,32,01:45:20,01:44:12,04:00:00,24:10,4:50 /km,49:30,4:58 /km,01:14:20,5:02 /km,4:56 /km
+42195,Nguyễn Văn Long,M,Full Marathon,15,14,M30-39,5,02:48:35,02:48:20,03:00:00,39:15,3:55 /km,01:23:40,3:58 /km,01:59:10,4:03 /km,3:59 /km
+61137,Yuki Yokota,M,10KM,80,67,M01-30,35,59:13,58:48,05:00:00,14:20,5:44 /km,29:10,5:56 /km,44:05,5:58 /km,5:53 /km
+52535,Ilyina Iryna,F,5KM,227,47,F60+,2,34:33,34:20,05:30:00,09:55,6:37 /km,20:15,6:53 /km,27:20,7:05 /km,6:52 /km`;
