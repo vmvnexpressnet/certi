@@ -11,9 +11,17 @@ export const RunnerDetailsCard: React.FC<RunnerDetailsCardProps> = ({ runner }) 
     <div className="w-full bg-white border border-stone-200/80 rounded-2xl p-4 sm:p-5 shadow-xs text-stone-800" id="runner-details-card">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3.5 mb-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-800 font-bold text-base">
-            {runner.gender === 'F' ? '♀' : '♂'}
-          </div>
+          {runner.photoUrl ? (
+            <img
+              src={runner.photoUrl}
+              alt={runner.name}
+              className="w-12 h-12 rounded-xl object-cover border border-stone-200 shadow-xs"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-800 font-bold text-base">
+              {runner.gender === 'F' ? '♀' : '♂'}
+            </div>
+          )}
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">

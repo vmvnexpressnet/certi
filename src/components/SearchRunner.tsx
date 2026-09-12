@@ -144,13 +144,21 @@ export const SearchRunner: React.FC<SearchRunnerProps> = ({
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div
-                      className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-[11px] ${
-                        item.gender === 'F' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-700'
-                      }`}
-                    >
-                      {item.gender}
-                    </div>
+                    {item.photoUrl ? (
+                      <img
+                        src={item.photoUrl}
+                        alt={item.name}
+                        className="w-7 h-7 rounded-md object-cover border border-stone-200"
+                      />
+                    ) : (
+                      <div
+                        className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-[11px] ${
+                          item.gender === 'F' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-700'
+                        }`}
+                      >
+                        {item.gender}
+                      </div>
+                    )}
                     <div>
                       <div className="font-semibold text-stone-900 text-sm flex items-center gap-1.5">
                         <span>{item.name}</span>

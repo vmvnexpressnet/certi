@@ -54,6 +54,7 @@ export const parseCSV = (csvText: string): Runner[] => {
   const agRankIdx = findIdx(['age group rank', 'hạng lứa tuổi', 'hạng ag'], 7);
   const gunIdx = findIdx(['gun'], 8);
   const chipIdx = findIdx(['chip', 'net'], 9);
+  const photoIdx = findIdx(['ảnh', 'photo', 'image', 'avatar'], 10);
 
   const runners: Runner[] = [];
 
@@ -85,6 +86,7 @@ export const parseCSV = (csvText: string): Runner[] => {
       gunTime: cols[gunIdx] || '--:--:--',
       chipTime: cols[chipIdx] || '--:--:--',
       date: '13/09/2026',
+      photoUrl: cols[photoIdx] || undefined,
     });
   }
 
@@ -205,6 +207,7 @@ export const fetchRunnersFromSource = async (
         gunTime: String(r.gunTime || '--:--:--').trim(),
         chipTime: String(r.chipTime || '--:--:--').trim(),
         date: r.date || '13/09/2026',
+        photoUrl: r.photoUrl || (r as any).photo || (r as any).image || undefined,
       };
     });
 

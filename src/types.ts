@@ -12,6 +12,7 @@ export interface Runner {
   chipTime: string; // e.g. '01:44:12'
   pace?: string;
   date?: string; // default '13/09/2026'
+  photoUrl?: string; // Optional runner photo URL
 }
 
 export interface CertificateConfig {

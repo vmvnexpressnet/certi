@@ -141,23 +141,47 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
     loadSavedBg();
   }, []);
 
+  // Track user custom uploaded photo separately so changing runners switches to the runner's photo if present
+  const [userUploadedPhoto, setUserUploadedPhoto] = useState<string | null>(null);
+
   // Load saved personal photo from IndexedDB on mount
   useEffect(() => {
     async function loadPersonalPhoto() {
       try {
         const savedPhoto = await getSavedPersonalPhoto();
         if (savedPhoto) {
+          setUserUploadedPhoto(savedPhoto);
           setPersonalPhotoUrl(savedPhoto);
+        } else if (runner.photoUrl) {
+          setPersonalPhotoUrl(runner.photoUrl);
         } else {
           // Preload sample runner photo so user has instant visual preview
           setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
         }
       } catch {
-        setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
+        if (runner.photoUrl) {
+          setPersonalPhotoUrl(runner.photoUrl);
+        } else {
+          setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
+        }
       }
     }
     loadPersonalPhoto();
   }, []);
+
+  // When selected runner changes, switch photo to runner's assigned photo if user didn't upload a custom override
+  useEffect(() => {
+    if (!userUploadedPhoto) {
+      if (runner.photoUrl) {
+        setPersonalPhotoUrl(runner.photoUrl);
+        setPhotoOffsetX(0);
+        setPhotoOffsetY(0);
+        setPhotoZoom(1.0);
+      } else {
+        setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
+      }
+    }
+  }, [runner.bib, runner.photoUrl, userUploadedPhoto]);
 
   // Preload generated image as fallback
   useEffect(() => {
@@ -313,6 +337,7 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
     reader.onload = async (event) => {
       const dataUrl = event.target?.result as string;
       await savePersonalPhoto(dataUrl);
+      setUserUploadedPhoto(dataUrl);
       setPersonalPhotoUrl(dataUrl);
       setPhotoOffsetX(0);
       setPhotoOffsetY(0);
@@ -490,7 +515,8 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
   // Remove personal photo
   const handleRemovePhoto = async () => {
     await removeSavedPersonalPhoto();
-    setPersonalPhotoUrl(null);
+    setUserUploadedPhoto(null);
+    setPersonalPhotoUrl(runner.photoUrl || null);
     setPhotoOffsetX(0);
     setPhotoOffsetY(0);
     setPhotoZoom(1.0);
@@ -499,7 +525,8 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
 
   // Set sample runner photo
   const handleUseSamplePhoto = () => {
-    setPersonalPhotoUrl(SAMPLE_RUNNER_PHOTO);
+    setUserUploadedPhoto(null);
+    setPersonalPhotoUrl(runner.photoUrl || SAMPLE_RUNNER_PHOTO);
     setPhotoOffsetX(0);
     setPhotoOffsetY(0);
     setPhotoZoom(1.0);
