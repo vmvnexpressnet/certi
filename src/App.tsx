@@ -15,7 +15,7 @@ import { Award, Share2, FileSpreadsheet, Sparkles, AlertCircle, Info, ExternalLi
 
 const DEFAULT_CONFIG: CertificateConfig = {
   bgMode: 'custom',
-  customBgDataUrl: null,
+  customBgDataUrl: '/QN26_Certificate.png', // Sử dụng trực tiếp ảnh trong thư mục public/
   nameY: 34.0,
   distanceY: 38.0, // Default theo ảnh: 38.0%
   statsY: 47.5, // Default theo ảnh: 47.5%
@@ -44,6 +44,7 @@ export default function App() {
         return {
           ...DEFAULT_CONFIG,
           ...parsed,
+          customBgDataUrl: parsed.customBgDataUrl || '/QN26_Certificate.png',
           nameY: typeof parsed.nameY === 'number' ? parsed.nameY : 34.0,
           distanceY: typeof parsed.distanceY === 'number' && parsed.distanceY !== 47.0 && parsed.distanceY !== 39.0 ? parsed.distanceY : 38.0,
           statsY: typeof parsed.statsY === 'number' && parsed.statsY !== 40.5 && parsed.statsY !== 45.0 ? parsed.statsY : 47.5,
@@ -68,13 +69,15 @@ export default function App() {
   const [syncError, setSyncError] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(() => {
     try {
-      return localStorage.getItem('vm_quynhon_logo_url') || null;
+      const saved = localStorage.getItem('vm_quynhon_logo_url');
+      if (saved && !saved.includes('error')) return saved;
+      return '/race_logo.png';
     } catch {
-      return null;
+      return '/race_logo.png';
     }
   });
 
-  // Check if server already has a cached race logo on disk
+  // Check if server already has a cached race logo on disk, or fallback to public /race_logo.png
   useEffect(() => {
     fetch('/api/logo-status')
       .then((r) => r.json())
@@ -83,7 +86,10 @@ export default function App() {
           setLogoUrl((prev) => prev || d.url);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // When deployed on static host (Vercel) without Express, use public asset
+        setLogoUrl((prev) => prev || '/race_logo.png');
+      });
   }, []);
 
   // Save config on changes

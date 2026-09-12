@@ -101,7 +101,7 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
   const personalImgRef = useRef<HTMLImageElement | null>(null);
   const [imagesReady, setImagesReady] = useState(false);
 
-  // Load custom certificate background from server or IndexedDB on mount
+  // Load custom certificate background from server, IndexedDB, or fallback to public /QN26_Certificate.png on mount
   useEffect(() => {
     async function loadSavedBg() {
       try {
@@ -116,7 +116,7 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
           return;
         }
       } catch {
-        // fallback
+        // fallback (e.g. running on Vercel without Express)
       }
 
       const saved = await getSavedBackgroundImage();
@@ -125,6 +125,16 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
           ...config,
           bgMode: 'custom',
           customBgDataUrl: saved,
+        });
+        return;
+      }
+
+      // Default to /QN26_Certificate.png in public folder
+      if (!config.customBgDataUrl) {
+        onChangeConfig({
+          ...config,
+          bgMode: 'custom',
+          customBgDataUrl: '/QN26_Certificate.png',
         });
       }
     }
@@ -160,20 +170,35 @@ export const CertificateCanvas: React.FC<CertificateCanvasProps> = ({
     };
   }, []);
 
-  // Preload custom cert background image if any
+  // Preload custom cert background image with automatic fallback to public /QN26_Certificate.png
   useEffect(() => {
-    if (config.customBgDataUrl) {
-      const custImg = new Image();
-      custImg.crossOrigin = 'anonymous';
-      custImg.src = config.customBgDataUrl;
-      custImg.onload = () => {
-        customImgRef.current = custImg;
-        setImagesReady((prev) => !prev);
-      };
-    } else {
-      customImgRef.current = null;
+    const bgUrl = config.customBgDataUrl || '/QN26_Certificate.png';
+    const custImg = new Image();
+    custImg.crossOrigin = 'anonymous';
+    custImg.src = bgUrl;
+    custImg.onload = () => {
+      customImgRef.current = custImg;
       setImagesReady((prev) => !prev);
-    }
+    };
+    custImg.onerror = () => {
+      // If external/proxy link fails (e.g. on Vercel), fall back to public /QN26_Certificate.png
+      if (bgUrl !== '/QN26_Certificate.png') {
+        const fallbackImg = new Image();
+        fallbackImg.crossOrigin = 'anonymous';
+        fallbackImg.src = '/QN26_Certificate.png';
+        fallbackImg.onload = () => {
+          customImgRef.current = fallbackImg;
+          setImagesReady((prev) => !prev);
+        };
+        fallbackImg.onerror = () => {
+          customImgRef.current = null;
+          setImagesReady((prev) => !prev);
+        };
+      } else {
+        customImgRef.current = null;
+        setImagesReady((prev) => !prev);
+      }
+    };
   }, [config.customBgDataUrl]);
 
   // Preload personal runner photo for collage
