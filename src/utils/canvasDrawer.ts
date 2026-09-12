@@ -94,14 +94,15 @@ export const drawCertificate = async (options: DrawOptions): Promise<void> => {
     ctx.stroke();
   }
 
-  // 3/ Các thành tích: Overall Rank, Gender Rank, AG, Age Group Rank, GunTime, ChipTime
+  // 3/ Các thành tích: BIB NUMBER, CHIPTIME, FINISH TIME (GunTime), OVERALL RANK, GENDER RANK, AG, AGE GROUP RANK
   const stats = [
+    { label: 'BIB NUMBER', val: String(runner.bib || '-') },
+    { label: 'CHIPTIME', val: String(runner.chipTime || '--:--:--') },
+    { label: 'FINISH TIME', val: String(runner.gunTime || '--:--:--') },
     { label: 'OVERALL RANK', val: String(runner.overallRank || '-') },
     { label: 'GENDER RANK', val: String(runner.genderRank || '-') },
     { label: 'AG', val: String(runner.ag || '-') },
     { label: 'AGE GROUP RANK', val: String(runner.ageGroupRank || '-') },
-    { label: 'GUN TIME', val: String(runner.gunTime || '--:--:--') },
-    { label: 'CHIP TIME', val: String(runner.chipTime || '--:--:--') },
   ];
 
   const isVertical = (config.statsLayout || 'vertical') === 'vertical';
@@ -110,15 +111,16 @@ export const drawCertificate = async (options: DrawOptions): Promise<void> => {
     // ====================================================
     // BỐ CỤC DẠNG DỌC (VERTICAL LIST - KHÔNG BACKGROUND)
     // Ví dụ:
+    // BIB NUMBER : 90110
+    // CHIPTIME : 6:25:24
+    // FINISH TIME : 6:25:47
     // OVERALL RANK : 292
     // GENDER RANK : 238
     // AG : M40-49
     // AGE GROUP RANK : 100
-    // GUN TIME : 6:25:47
-    // CHIP TIME : 6:25:24
     // ====================================================
     const lineSpacing = config.statsLineSpacing || 1.0;
-    const rowHeight = Math.round(width * 0.046 * fontMultiplier * lineSpacing);
+    const rowHeight = Math.max(10, Math.round(width * 0.046 * fontMultiplier * lineSpacing) - 3);
     const labelFontSize = Math.round(width * 0.027 * fontMultiplier);
     const valFontSize = Math.round(width * 0.033 * fontMultiplier);
 
@@ -143,7 +145,7 @@ export const drawCertificate = async (options: DrawOptions): Promise<void> => {
     const splitX = Math.round((width - totalBlockW) / 2 + maxLabelW);
 
     const totalH = stats.length * rowHeight;
-    const startY = statsY - totalH * 0.5;
+    const startY = statsY - totalH * 0.5 + 3;
 
     // Nếu người dùng chủ động bật khung nền (mặc định tắt)
     if (config.showStatsCard) {
@@ -188,10 +190,10 @@ export const drawCertificate = async (options: DrawOptions): Promise<void> => {
     });
   } else {
     // ====================================================
-    // BỐ CỤC DẠNG LƯỚI NGANG (HORIZONTAL GRID - 6 CỘT)
+    // BỐ CỤC DẠNG LƯỚI NGANG (HORIZONTAL GRID)
     // ====================================================
-    const containerW = width * 0.88;
-    const colW = containerW / 6;
+    const containerW = width * 0.90;
+    const colW = containerW / stats.length;
     const startX = (width - containerW) / 2;
 
     const cardH = width * 0.095 * fontMultiplier;

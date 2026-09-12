@@ -50,71 +50,82 @@ export const RunnerDetailsCard: React.FC<RunnerDetailsCardProps> = ({ runner }) 
         </div>
       </div>
 
-      {/* 6 Key Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
-        {/* 1. Overall Rank */}
-        <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
-          <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
-            <Trophy className="w-3.5 h-3.5 text-amber-500" />
-            Overall Rank
-          </span>
-          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
-            #{runner.overallRank}
-          </span>
-        </div>
-
-        {/* 2. Gender Rank */}
-        <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
-          <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
-            <User className="w-3.5 h-3.5 text-sky-600" />
-            Gender Rank
-          </span>
-          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
-            #{runner.genderRank}
-          </span>
-        </div>
-
-        {/* 3. AG */}
+      {/* 7 Key Stats Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        {/* 1. BIB NUMBER */}
         <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
           <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
             <Hash className="w-3.5 h-3.5 text-stone-500" />
-            Nhóm tuổi (AG)
+            BIB NUMBER
           </span>
-          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
-            {runner.ag}
-          </span>
-        </div>
-
-        {/* 4. Age Group Rank */}
-        <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
-          <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
-            <Medal className="w-3.5 h-3.5 text-orange-500" />
-            AG Rank
-          </span>
-          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
-            #{runner.ageGroupRank}
+          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1 font-mono">
+            {runner.bib}
           </span>
         </div>
 
-        {/* 5. GunTime */}
+        {/* 2. CHIPTIME */}
+        <div className="bg-teal-50/60 p-3 rounded-xl border border-teal-200/70 flex flex-col justify-between">
+          <span className="text-[11px] font-bold text-teal-800 flex items-center gap-1">
+            <Timer className="w-3.5 h-3.5 text-teal-600" />
+            CHIPTIME
+          </span>
+          <span className="text-base sm:text-lg font-extrabold text-teal-900 mt-1 font-mono">
+            {runner.chipTime}
+          </span>
+        </div>
+
+        {/* 3. FINISH TIME (Gun Time) */}
         <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
           <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
             <Flag className="w-3.5 h-3.5 text-indigo-500" />
-            Gun Time
+            FINISH TIME
           </span>
           <span className="text-base sm:text-lg font-bold text-stone-800 mt-1 font-mono">
             {runner.gunTime}
           </span>
         </div>
 
-        {/* 6. ChipTime */}
-        <div className="bg-teal-50/60 p-3 rounded-xl border border-teal-200/70 flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-teal-800 flex items-center gap-1">
-            <Timer className="w-3.5 h-3.5 text-teal-600" />
-            Chip Time
+        {/* 4. OVERALL RANK */}
+        <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
+          <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
+            <Trophy className="w-3.5 h-3.5 text-amber-500" />
+            OVERALL RANK
           </span>
-          <span className="text-base sm:text-lg font-extrabold text-teal-900 mt-1 font-mono">
-            {runner.chipTime}
+          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
+            #{runner.overallRank}
+          </span>
+        </div>
+
+        {/* 5. GENDER RANK */}
+        <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
+          <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
+            <User className="w-3.5 h-3.5 text-sky-600" />
+            GENDER RANK
+          </span>
+          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
+            #{runner.genderRank}
+          </span>
+        </div>
+
+        {/* 6. AG */}
+        <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
+          <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
+            <Hash className="w-3.5 h-3.5 text-stone-500" />
+            AG
+          </span>
+          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
+            {runner.ag}
+          </span>
+        </div>
+
+        {/* 7. AGE GROUP RANK */}
+        <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/70 flex flex-col justify-between">
+          <span className="text-[11px] font-semibold text-stone-500 flex items-center gap-1">
+            <Medal className="w-3.5 h-3.5 text-orange-500" />
+            AGE GROUP RANK
+          </span>
+          <span className="text-base sm:text-lg font-bold text-stone-900 mt-1">
+            #{runner.ageGroupRank}
           </span>
         </div>
       </div>
